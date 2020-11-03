@@ -1,0 +1,10 @@
+#+TITLE: README Linux only
+* nix build
+#+NAME:
+#+CAPTION:
+#+ATTR_HTML: :width 500
+[[file:img/Screenshot_20201102_160315.png][brim-nix]]
+- run brim
+#+begin_src sh :async t :exports both :results output
+./result/bin/brim
+#+end_src
