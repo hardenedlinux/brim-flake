@@ -4,6 +4,10 @@
 
   outputs = { self, nixpkgs }: {
 
+    overlay = final: prev: {
+      brim = self.defaultPackage.x86_64-linux;
+    };
+
     defaultPackage.x86_64-linux =
       with import nixpkgs { system = "x86_64-linux"; };
       stdenv.mkDerivation {
