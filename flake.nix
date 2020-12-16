@@ -12,12 +12,12 @@
       with import nixpkgs { system = "x86_64-linux"; };
       stdenv.mkDerivation {
         pname = "brim";
-        version = "0.19.0";
+        version = "0.21.0";
 
         # fetching a .deb because there's no easy way to package this Electron app
         src = fetchurl {
           url = "https://github.com/brimsec/brim/releases/download/v${self.outputs.defaultPackage.x86_64-linux.version}/brim_amd64.deb";
-          hash = "sha256-NWtUObNbJ+Z4GmKi8aVn291M6ZzMwqXYFA72kJBYwic=";
+          hash = "sha256-YfoGJwDHAMvaZDBtjc3+kj/BP7cEc/Gkhx+G4hIBCOQ=";
         };
 
         buildInputs = [
@@ -58,6 +58,7 @@
           dpkg
         ];
 
+        
         runtimeLibs = lib.makeLibraryPath [ libudev0-shim glibc curl openssl libnghttp2 ];
 
         unpackPhase = "dpkg-deb --fsys-tarfile $src | tar -x --no-same-permissions --no-same-owner";
