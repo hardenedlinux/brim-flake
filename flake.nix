@@ -152,7 +152,8 @@
             enableParallelBuilding = true;
           });
 
-        checks.x86_64-linux.build = self.defaultPackage.x86_64-linux;
-
+        checks = forAllSystems (system: {
+          build = self.defaultPackage."${system}";
+        });
       };
 }
