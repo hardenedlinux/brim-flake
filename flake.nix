@@ -1,69 +1,75 @@
 {
-  inputs.nixpkgs.url = "nixpkgs/8bdebd463bc77c9b83d66e690cba822a51c34b9b";
+  description = "Desktop application to efficiently search large packet captures and Zeek logs.";
 
+  inputs = {
+    nixpkgs.url = "nixpkgs/7ff5e241a2b96fff7912b7d793a06b4374bd846c";
+  };
 
-  outputs = { self, nixpkgs }: {
-
-    overlay = final: prev: {
-      brim = self.defaultPackage.x86_64-linux;
-    };
-
-    defaultPackage.x86_64-linux =
-      with import nixpkgs { system = "x86_64-linux"; };
-      stdenv.mkDerivation {
-        pname = "brim";
-        version = "0.21.0";
-
-        # fetching a .deb because there's no easy way to package this Electron app
-        src = fetchurl {
-          url = "https://github.com/brimsec/brim/releases/download/v${self.outputs.defaultPackage.x86_64-linux.version}/brim_amd64.deb";
-          hash = "sha256-YfoGJwDHAMvaZDBtjc3+kj/BP7cEc/Gkhx+G4hIBCOQ=";
+  outputs = { self, nixpkgs }:
+    let
+      forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "i686-linux" "aarch64-linux" ];
+    in
+      {
+        overlay = final: prev: {
+          brim = self.defaultPackage.x86_64-linux;
         };
 
-        buildInputs = [
-          gnome3.gsettings_desktop_schemas
-          glib
-          gtk3
-          cairo
-          gnome2.pango
-          atk
-          gdk-pixbuf
-          at-spi2-atk
-          dbus
-          dconf
-          xorg.libX11
-          xorg.libxcb
-          xorg.libXi
-          xorg.libXcursor
-          xorg.libXdamage
-          xorg.libXrandr
-          xorg.libXcomposite
-          xorg.libXext
-          xorg.libXfixes
-          xorg.libXrender
-          xorg.libXtst
-          xorg.libXScrnSaver
-          nss
-          nspr
-          alsaLib
-          cups
-          fontconfig
-          expat
-        ];
+        defaultPackage = forAllSystems (system:
+          with import nixpkgs { inherit system; };
+          stdenv.mkDerivation {
+            pname = "brim";
+            version = "0.23.0";
 
-        nativeBuildInputs = [
-          wrapGAppsHook
-          autoPatchelfHook
-          makeWrapper
-          dpkg
-        ];
+            # fetching a .deb because there's no easy way to package this Electron app
+            src = fetchurl {
+              url = "https://github.com/brimsec/brim/releases/download/v${self.outputs.defaultPackage.x86_64-linux.version}/brim_amd64.deb";
+              hash = "sha256-Sw0efEq8RWkhA/dRr16KwKrNRc/nd17hUup8vbisM4s=";
+            };
 
-        
-        runtimeLibs = lib.makeLibraryPath [ libudev0-shim glibc curl openssl libnghttp2 ];
+            buildInputs = [
+              gnome3.gsettings_desktop_schemas
+              glib
+              gtk3
+              cairo
+              gnome2.pango
+              atk
+              gdk-pixbuf
+              at-spi2-atk
+              dbus
+              dconf
+              xorg.libX11
+              xorg.libxcb
+              xorg.libXi
+              xorg.libXcursor
+              xorg.libXdamage
+              xorg.libXrandr
+              xorg.libXcomposite
+              xorg.libXext
+              xorg.libXfixes
+              xorg.libXrender
+              xorg.libXtst
+              xorg.libXScrnSaver
+              nss
+              nspr
+              alsaLib
+              cups
+              fontconfig
+              expat
+            ];
 
-        unpackPhase = "dpkg-deb --fsys-tarfile $src | tar -x --no-same-permissions --no-same-owner";
+            nativeBuildInputs = [
+              wrapGAppsHook
+              autoPatchelfHook
+              makeWrapper
+              dpkg
+            ];
 
-        installPhase = ''
+
+            runtimeLibs = lib.makeLibraryPath [ libudev0-shim glibc curl openssl libnghttp2 ];
+
+            unpackPhase = "dpkg-deb --fsys-tarfile $src | tar -x --no-same-permissions --no-same-owner";
+
+            installPhase = ''
         mkdir -p $out/share/brim
         mkdir -p $out/bin
         mkdir -p $out/lib
@@ -139,15 +145,14 @@
        sed -i "1i##! test detect-traceroute" $out/share/brim/resources/app/zdeps/zeek/share/zeek/policy/misc/detect-traceroute/__load__.zeek
           '';
 
-        preFixup = ''
+            preFixup = ''
          gappsWrapperArgs+=(--prefix LD_LIBRARY_PATH : "${self.outputs.defaultPackage.x86_64-linux.runtimeLibs}" )
          '';
 
-        enableParallelBuilding = true;
+            enableParallelBuilding = true;
+          });
+
+        checks.x86_64-linux.build = self.defaultPackage.x86_64-linux;
+
       };
-
-    checks.x86_64-linux.build = self.defaultPackage.x86_64-linux;
-
-  };
-
 }
