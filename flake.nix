@@ -8,15 +8,17 @@
   outputs = { self, nixpkgs }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "i686-linux" "aarch64-linux" ];
+      nixpkgsFor = forAllSystems (system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ self.overlay ];
+        });
+
     in
       {
         overlay = final: prev: {
-          brim = self.defaultPackage.x86_64-linux;
-        };
-
-        defaultPackage = forAllSystems (system:
-          with import nixpkgs { inherit system; };
-          stdenv.mkDerivation {
+          brim = with final;
+            (stdenv.mkDerivation {
             pname = "brim";
             version = "0.23.0";
 
@@ -150,7 +152,12 @@
          '';
 
             enableParallelBuilding = true;
-          });
+            });
+        };
+
+        packages = forAllSystems (system: { inherit (nixpkgsFor.${system}) brim; });
+
+        defaultPackage = forAllSystems (system: self.packages.${system}.brim);
 
         checks = forAllSystems (system: {
           build = self.defaultPackage."${system}";
