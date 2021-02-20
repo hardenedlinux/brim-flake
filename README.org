@@ -9,3 +9,9 @@
 #+begin_src sh :async t :exports both :results output
 ./result/bin/brim
 #+end_src
+
+ - Non-NixOS
+
+#+begin_src sh :async t :exports both :results output
+./result/bin/brim --no-sandbox
+#+end_src
